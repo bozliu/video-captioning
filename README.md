@@ -120,17 +120,14 @@ To regenerate these GIFs on your own machine:
 python scripts/make_gifs.py --video-dir data/videos --run-dir artifacts/<your-run-dir> --video-ids video9703,video7481,video7116 --split test --out-dir assets/gifs
 ```
 
-Text-only snapshot (useful for quick skimming in issues/PRs):
-![Qualitative Examples](assets/qualitative_examples.png)
+### Runtime vs Quality Trade-off
+![Benchmark Tradeoff](assets/benchmark_tradeoff.png)
 
-To regenerate this PNG on your own runs:
+To regenerate the trade-off plot on your own runs:
 ```bash
 python scripts/make_figures.py --run-dir artifacts/<your-run-dir> --out-dir assets
 ```
 Requires `matplotlib` (`pip install matplotlib`).
-
-### Runtime vs Quality Trade-off
-![Benchmark Tradeoff](assets/benchmark_tradeoff.png)
 
 ### Benchmark (Local Reproducible Runs)
 
@@ -164,9 +161,10 @@ Machine-readable file: `results/sota_comparison.csv`.
 1. **Architecture figure** (`assets/architecture.png`):
    - shows where each module contributes,
    - clarifies that improvement comes from *prefix conditioning + reconstruction constraint*, not from a larger decoder.
-2. **Qualitative examples** (`assets/qualitative_examples.png`):
-   - expose error modes (e.g., repetitive phrasing, topical drift),
-   - useful for debugging decoding strategy, prompt design, and reconstructor weight.
+2. **Qualitative GIF clips** (`assets/gifs/*.gif`, manifest: `assets/gifs/qualitative_gifs.json`):
+   - show short video snippets alongside reference/prediction captions,
+   - expose error modes (e.g., repetitive phrasing, topical drift, mismatched actions),
+   - useful for debugging decoding strategy and reconstructor weight.
 3. **Trade-off chart** (`assets/benchmark_tradeoff.png`):
    - shows the practical latency/quality envelope for local hardware,
    - helps choose configs for fast iteration vs stronger validation quality.
@@ -187,7 +185,8 @@ collapses or training becomes unstable.
 ### How others can reuse this work
 - Reuse the training/evaluation CLI and configs as a minimal baseline for new video-caption datasets.
 - Reuse the reconstructor loss module as a drop-in regularizer in other encoder-decoder pipelines.
-- Reuse `results/*.csv` and visualization templates for project reporting and ablation tracking.
+- Reuse `scripts/make_gifs.py` to generate small qualitative GIF thumbnails without committing any full videos.
+- Reuse `results/*.csv` and visualization templates for project reporting and ablation tracking:
   - `python scripts/make_figures.py --run-dir artifacts/<run> --out-dir assets`
 
 ## Fair-Comparison Note
