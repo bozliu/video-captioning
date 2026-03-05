@@ -89,9 +89,41 @@ Direct links:
 ## Results
 
 ### Qualitative Visualization
+The GIFs below are lightweight thumbnails for qualitative inspection. This repository does **not** redistribute full
+videos, and any local video files remain subject to the dataset terms and licenses.
+
+<table>
+  <tr>
+    <td valign="top" width="33%">
+      <img src="assets/gifs/video9703.gif" width="320" />
+      <div><b>video9703</b></div>
+      <div><b>Reference:</b> several men are striking a pose for the camera</div>
+      <div><b>Prediction:</b> The man in the video is a man in a black shirt is talking about a woman in a black shirt and a black</div>
+    </td>
+    <td valign="top" width="33%">
+      <img src="assets/gifs/video7481.gif" width="320" />
+      <div><b>video7481</b></div>
+      <div><b>Reference:</b> a man carries a green block</div>
+      <div><b>Prediction:</b> The first video of a video game is being played on a computer screen by a man and a woman in a black dress</div>
+    </td>
+    <td valign="top" width="33%">
+      <img src="assets/gifs/video7116.gif" width="320" />
+      <div><b>video7116</b></div>
+      <div><b>Reference:</b> a group of people are walking a woman is talking about their culture</div>
+      <div><b>Prediction:</b> The first video of a man and a woman in a car crash in a city of 100 million people in the United States</div>
+    </td>
+  </tr>
+</table>
+
+To regenerate these GIFs on your own machine:
+```bash
+python scripts/make_gifs.py --video-dir data/videos --run-dir artifacts/<your-run-dir> --video-ids video9703,video7481,video7116 --split test --out-dir assets/gifs
+```
+
+Text-only snapshot (useful for quick skimming in issues/PRs):
 ![Qualitative Examples](assets/qualitative_examples.png)
 
-To regenerate this figure on your own runs:
+To regenerate this PNG on your own runs:
 ```bash
 python scripts/make_figures.py --run-dir artifacts/<your-run-dir> --out-dir assets
 ```

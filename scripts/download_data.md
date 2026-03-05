@@ -19,10 +19,25 @@ data/
   V2C_MSR-VTT_caption.json
   v2c_info.json
   msrvtt_new_info.json
+
+  # Optional: local videos (not required for training/eval).
+  # Used only for generating README qualitative GIF clips.
+  videos/
+    video9703.mp4
+    video7481.mp4
+    video7116.mp4
 ```
 
 ## Rebuild split file
 
 ```bash
 python -m videocap.prepare_data --data-root data --val-ratio 0.05 --seed 42
+```
+
+## Optional: Generate README GIFs
+
+If you have local clips under `data/videos/`, you can generate small GIF thumbnails for README:
+
+```bash
+python scripts/make_gifs.py --video-dir data/videos --run-dir artifacts/<your-run-dir> --video-ids video9703,video7481,video7116 --split test --out-dir assets/gifs
 ```

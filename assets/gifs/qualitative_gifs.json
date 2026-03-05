@@ -1,0 +1,31 @@
+{
+  "run_name": "full_quick-20260305-163658",
+  "split": "test",
+  "generator": {
+    "start_seconds": 0.0,
+    "duration_seconds": 4.0,
+    "fps": 8,
+    "width": 320,
+    "max_colors": 128
+  },
+  "examples": [
+    {
+      "video_id": "video9703",
+      "gif_path": "assets/gifs/video9703.gif",
+      "reference_caption": "several men are striking a pose for the camera",
+      "prediction_caption": "The man in the video is a man in a black shirt is talking about a woman in a black shirt and a black"
+    },
+    {
+      "video_id": "video7481",
+      "gif_path": "assets/gifs/video7481.gif",
+      "reference_caption": "a man carries a green block",
+      "prediction_caption": "The first video of a video game is being played on a computer screen by a man and a woman in a black dress"
+    },
+    {
+      "video_id": "video7116",
+      "gif_path": "assets/gifs/video7116.gif",
+      "reference_caption": "a group of people are walking a woman is talking about their culture",
+      "prediction_caption": "The first video of a man and a woman in a car crash in a city of 100 million people in the United States"
+    }
+  ]
+}
