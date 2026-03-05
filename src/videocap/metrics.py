@@ -93,7 +93,7 @@ def _compute_fallback(gts: Dict[str, List[str]], res: Dict[str, List[str]]) -> D
         "BLEU_3": bleu4,
         "BLEU_4": bleu4,
         "ROUGE_L": rouge_l,
-        "CIDEr": bleu4 * 10.0,
+        "CIDEr": 0.0,
     }
 
 
@@ -112,9 +112,12 @@ def compute_caption_metrics(
         }
 
     try:
-        return _compute_with_pycoco(gts, res)
+        metrics = _compute_with_pycoco(gts, res)
     except Exception:
-        return _compute_fallback(gts, res)
+        metrics = _compute_fallback(gts, res)
+
+    # Paper-style reporting (x100) for consistency with common video captioning tables.
+    return {k: float(v) * 100.0 for k, v in metrics.items()}
 
 
 def save_json(data: Dict, path: str) -> None:

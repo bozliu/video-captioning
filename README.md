@@ -21,6 +21,18 @@ Compared with image captioning, video captioning must model temporal dynamics, a
    - CI checks for style/tests/CLI smoke,
    - structured docs and references.
 
+## What’s Unique Here (vs SOTA)
+Recent SOTA video captioning systems typically achieve higher headline scores with larger video encoders, retrieval, and
+large-scale pretraining. This repository targets a different (and very practical) point in the design space: a lightweight,
+MPS-friendly baseline you can train, debug, and extend locally.
+
+- **Engineering innovation:** Python 3.12, MPS-first device selection, deterministic splits, CLI-first workflow, and CI.
+- **Method packaging:** learned video prefix tokens for a pretrained LM (`distilgpt2`) plus an explicit reconstruction
+  objective that keeps decoded text representations aligned with fused video features.
+- **Reusable ablation knobs:** prefix length, reconstructor weight, temporal encoder depth, and decoding parameters.
+
+This is a **reproducible baseline**, not a leaderboard claim. Use the SOTA table below for context only.
+
 ## Method Overview
 ![Architecture](assets/architecture.png)
 
@@ -79,20 +91,28 @@ Direct links:
 ### Qualitative Visualization
 ![Qualitative Examples](assets/qualitative_examples.png)
 
+To regenerate this figure on your own runs:
+```bash
+python scripts/make_figures.py --run-dir artifacts/<your-run-dir> --out-dir assets
+```
+Requires `matplotlib` (`pip install matplotlib`).
+
 ### Runtime vs Quality Trade-off
 ![Benchmark Tradeoff](assets/benchmark_tradeoff.png)
 
 ### Benchmark (Local Reproducible Runs)
 
-| Run | Split | BLEU-4 | ROUGE-L | CIDEr | Runtime (s) | Note |
+| Run | Split | BLEU-4 (x100) | ROUGE-L (x100) | CIDEr (x100) | Runtime (s) | Note |
 |---|---|---:|---:|---:|---:|---|
-| smoke_128_stable2 | val | 0.0000 | 0.1319 | 0.0013 | 12.27 | smoke sanity |
-| baseline_quick | val | 0.0300 | 0.2454 | 0.0068 | 218.04 | `lambda_recon=0.0` |
-| recon_quick | val | 0.0310 | 0.2506 | 0.0069 | 167.09 | `lambda_recon=0.2` |
-| full_quick | val | 0.0289 | 0.2662 | 0.0077 | 624.23 | selected by val CIDEr |
-| full_quick | test | 0.0383 | 0.2696 | 0.0068 | - | held-out test |
+| smoke_128_stable2 | val | 0.00 | 13.19 | 0.13 | 12.27 | smoke sanity |
+| baseline_quick | val | 3.00 | 24.54 | 0.68 | 218.04 | `lambda_recon=0.0` |
+| recon_quick | val | 3.10 | 25.06 | 0.69 | 167.09 | `lambda_recon=0.2` |
+| full_quick | val | 2.89 | 26.62 | 0.77 | 624.23 | selected by val CIDEr |
+| full_quick | test | 3.83 | 26.96 | 0.68 | - | held-out test |
 
 Machine-readable file: `results/benchmark_main.csv`.
+
+All metrics in this README/`results/*.csv` are reported as x100 (paper-style).
 
 ### SOTA Comparison (Paper-Reported)
 
@@ -102,7 +122,7 @@ Machine-readable file: `results/benchmark_main.csv`.
 | D-LSG | 2021 | MSR-VTT test | 44.6 | 28.8 | 62.3 | 51.2 | Supervised | [5] |
 | HMN | 2022 | MSR-VTT test | 43.5 | 29.0 | 62.7 | 51.5 | Supervised | [6] |
 | RETTA | 2024 | MSR-VTT test | 14.0 | 19.3 | 42.2 | 24.3 | Zero-shot + TTA | [7] |
-| This repo (`full_quick`) | 2026 | V2C/MSR-VTT-derived test | 0.0383 | N/A | 0.2696 | 0.0068 | Lightweight local reproducible | this work |
+| This repo (`full_quick`) | 2026 | V2C/MSR-VTT-derived test | 3.83 | N/A | 26.96 | 0.68 | Lightweight local reproducible | this work |
 
 Machine-readable file: `results/sota_comparison.csv`.
 
@@ -127,10 +147,16 @@ Machine-readable file: `results/sota_comparison.csv`.
    - non-ours rows are paper-reported values under their own protocols,
    - ours uses a lightweight local setting and different preprocessing scale.
 
+If you observe that enabling reconstruction improves CIDEr/ROUGE-L in your ablations, it typically means the decoder is
+better constrained to stay aligned with the fused video embedding, which can reduce caption drift and generic phrasing.
+Treat `lambda_recon` as a practical knob: increase it when captions become visually inconsistent; decrease it if fluency
+collapses or training becomes unstable.
+
 ### How others can reuse this work
 - Reuse the training/evaluation CLI and configs as a minimal baseline for new video-caption datasets.
 - Reuse the reconstructor loss module as a drop-in regularizer in other encoder-decoder pipelines.
 - Reuse `results/*.csv` and visualization templates for project reporting and ablation tracking.
+  - `python scripts/make_figures.py --run-dir artifacts/<run> --out-dir assets`
 
 ## Fair-Comparison Note
 All non-ours rows in the SOTA table are reported values from cited papers under their own settings; they are **not retrained in this repository**. Metric scales/protocols can differ across codebases and preprocessing pipelines.

@@ -3,4 +3,4 @@ RecNet (local reconstructor),2018,MSR-VTT test,39.1,26.6,59.3,42.7,supervised,[4
 D-LSG,2021,MSR-VTT test,44.6,28.8,62.3,51.2,supervised,[5]
 HMN,2022,MSR-VTT test,43.5,29.0,62.7,51.5,supervised,[6]
 RETTA,2024,MSR-VTT test,14.0,19.3,42.2,24.3,zero-shot + test-time adaptation,[7]
-This repository (full_quick),2026,V2C/MSR-VTT-derived test,0.03825297559720745,NA,0.2695633380353823,0.006819447565207271,lightweight local reproducible,This work
+This repository (full_quick),2026,V2C/MSR-VTT-derived test,3.8252975597207453,NA,26.95633380353823,0.6819447565207271,lightweight local reproducible,This work
