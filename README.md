@@ -1,58 +1,163 @@
-# Video Captioning 
-Automatic description generation from digital video
+# Video Captioning with Prefix Adaptation + Reconstructor (M3-Ready)
 
-## Feature Extraction 
+A reproducible video captioning project that adapts a pretrained language model (`distilgpt2`) with learned video prefix tokens and a reconstruction objective, designed for local Apple Silicon (MPS) workflows.
 
-```
-cd ../extra_features
-python extract_features.py
+## Why Video Captioning Matters
+Video captioning converts raw video content into natural language, which is useful for:
+- accessibility (assistive descriptions),
+- retrieval and indexing (searchable media),
+- downstream multimodal systems (summarization, QA, recommendation, agents).
+
+Compared with image captioning, video captioning must model temporal dynamics, action transitions, and context consistency across frames.
+
+## What This Repository Contributes
+1. A clean, modernized codebase for local experimentation (Python 3.12, MPS-ready).
+2. Prefix-based LM adaptation with explicit reconstructor loss:
+   - `L_total = L_ce + lambda_recon * L_recon`
+   - `L_recon = 0.5 * MSE + 0.5 * (1 - cosine)`
+3. Deterministic split tooling and lightweight experiment presets.
+4. Public-release hygiene:
+   - no dataset/checkpoint blobs in git,
+   - CI checks for style/tests/CLI smoke,
+   - structured docs and references.
+
+## Method Overview
+![Architecture](assets/architecture.png)
+
+Pipeline:
+1. Load pre-extracted frame features.
+2. Encode temporal context (transformer + motion-delta branch).
+3. Project encoded video to LM prefix tokens.
+4. Generate caption with `distilgpt2` decoder.
+5. Reconstruct fused video embedding from decoder hidden states for alignment.
+
+## Reproducibility Quickstart
+
+### 1) Environment
+```bash
+conda env update -n dl -f environment.yml
+conda run -n dl python scripts/check_env.py
 ```
 
-## Model Training 
-```
-python train.py
+### 2) Install package (recommended)
+```bash
+conda run -n dl pip install -e .
 ```
 
-## Testing: Caption Generation 
+### 3) Prepare split (after local data download)
+```bash
+conda run -n dl python -m videocap.prepare_data --data-root data --val-ratio 0.05 --seed 42
 ```
-python generateCaption.py.py -videoFeature feature_path --inputType feature
+
+### 4) Train / Evaluate / Predict
+```bash
+conda run -n dl python -m videocap.train --config configs/m3_quick.yaml
+conda run -n dl python -m videocap.evaluate --config configs/m3_quick.yaml --checkpoint <ckpt> --split val
+conda run -n dl python -m videocap.predict --config configs/m3_quick.yaml --checkpoint <ckpt> --video-id <video_id>
 ```
-## Dataset
-[MSR-VTT](https://www.mediafire.com/folder/h14iarbs62e7p/shared)
 
-## File Description 
-├── MSR-VTT  
-│   ├── MSR-VTT  
-│   ├── MSR-VTT-i3dfeatures     
-│   ├── MSR-VTT-train.json    
-│   └── MSR-VTT-val.json  
-├── config.py  
-├── dataset  
-│   ├── ParserJson.py  
-│   └── VideoCaptionDataset.py  
-├── evaluation  
-│   └── coco_caption  
-├── extra_features  
-│   ├── 2D-CNN.py  
-│   ├── audioFeature  
-│   ├── config.py    
-│   ├── data  
-│   ├── extract_features.py  
-│   ├── flownet  
-│   ├── load_video.py  
-│   ├── model  
-│   └── pytorch_i3d.py  
-├── final_checkpoint  
-│   └── best_model.pth  
-├── generateCaption.py   
-├── model  
-│   ├── Attention.py  
-│   ├── Seq2Seq.py  
-│   └── local_constructor.py  
-├── pytorch-i3d  
-├── test.py  
-├── train.py   
+## Dataset Policy (Code-Only Release)
+This repository does **not** include dataset files, extracted features, or checkpoints.
 
-* **MSR-VTT** is the folder of dataset 
-*  ` config.py ` is the onfigureation file 
-*  **pytorch-i3d** is the pretrained feature extractors by the [i3d repository](https://github.com/piergiaj/pytorch-i3d/)
+Public links and setup instructions:
+- `docs/datasets.md`
+- `scripts/download_data.md`
+
+Direct links:
+- Video2Commonsense annotations: https://drive.google.com/file/d/1qt0JsOAqBsdCTlDUw0gw7c_IosShysoW/view?usp=sharing
+- ResNet152 features (V2C baseline): https://drive.google.com/file/d/1yUu4zMQzw_YOO5M8_i91ht3PmfkytolG/view?usp=sharing
+- MSVD project page: https://www.cs.utexas.edu/~ml/clamp/videoDescription/
+
+## Experimental Setup
+- Runtime stack: Python 3.12, PyTorch 2.5, `transformers`.
+- Device priority: MPS -> CUDA -> CPU.
+- Split policy: deterministic train/val split from provided train IDs, `seed=42`.
+- Main config presets: `smoke_128`, `baseline_quick`, `recon_quick`, `full_quick`, `m3_quick`.
+
+## Results
+
+### Qualitative Visualization
+![Qualitative Examples](assets/qualitative_examples.png)
+
+### Runtime vs Quality Trade-off
+![Benchmark Tradeoff](assets/benchmark_tradeoff.png)
+
+### Benchmark (Local Reproducible Runs)
+
+| Run | Split | BLEU-4 | ROUGE-L | CIDEr | Runtime (s) | Note |
+|---|---|---:|---:|---:|---:|---|
+| smoke_128_stable2 | val | 0.0000 | 0.1319 | 0.0013 | 12.27 | smoke sanity |
+| baseline_quick | val | 0.0300 | 0.2454 | 0.0068 | 218.04 | `lambda_recon=0.0` |
+| recon_quick | val | 0.0310 | 0.2506 | 0.0069 | 167.09 | `lambda_recon=0.2` |
+| full_quick | val | 0.0289 | 0.2662 | 0.0077 | 624.23 | selected by val CIDEr |
+| full_quick | test | 0.0383 | 0.2696 | 0.0068 | - | held-out test |
+
+Machine-readable file: `results/benchmark_main.csv`.
+
+### SOTA Comparison (Paper-Reported)
+
+| Method | Year | Dataset/Split | BLEU-4 | METEOR | ROUGE-L | CIDEr | Setting | Ref |
+|---|---:|---|---:|---:|---:|---:|---|---|
+| RecNet | 2018 | MSR-VTT test | 39.1 | 26.6 | 59.3 | 42.7 | Supervised | [4] |
+| D-LSG | 2021 | MSR-VTT test | 44.6 | 28.8 | 62.3 | 51.2 | Supervised | [5] |
+| HMN | 2022 | MSR-VTT test | 43.5 | 29.0 | 62.7 | 51.5 | Supervised | [6] |
+| RETTA | 2024 | MSR-VTT test | 14.0 | 19.3 | 42.2 | 24.3 | Zero-shot + TTA | [7] |
+| This repo (`full_quick`) | 2026 | V2C/MSR-VTT-derived test | 0.0383 | N/A | 0.2696 | 0.0068 | Lightweight local reproducible | this work |
+
+Machine-readable file: `results/sota_comparison.csv`.
+
+## How to Interpret the Visuals and Tables (and Reuse Them)
+
+### What the visuals mean
+1. **Architecture figure** (`assets/architecture.png`):
+   - shows where each module contributes,
+   - clarifies that improvement comes from *prefix conditioning + reconstruction constraint*, not from a larger decoder.
+2. **Qualitative examples** (`assets/qualitative_examples.png`):
+   - expose error modes (e.g., repetitive phrasing, topical drift),
+   - useful for debugging decoding strategy, prompt design, and reconstructor weight.
+3. **Trade-off chart** (`assets/benchmark_tradeoff.png`):
+   - shows the practical latency/quality envelope for local hardware,
+   - helps choose configs for fast iteration vs stronger validation quality.
+
+### What the tables mean
+1. **Local Benchmark table** is for **reproducibility and ablation decisions**:
+   - compare reconstruction-on/off,
+   - choose default config for local training budgets.
+2. **SOTA table** is for **context**, not direct leaderboard claims:
+   - non-ours rows are paper-reported values under their own protocols,
+   - ours uses a lightweight local setting and different preprocessing scale.
+
+### How others can reuse this work
+- Reuse the training/evaluation CLI and configs as a minimal baseline for new video-caption datasets.
+- Reuse the reconstructor loss module as a drop-in regularizer in other encoder-decoder pipelines.
+- Reuse `results/*.csv` and visualization templates for project reporting and ablation tracking.
+
+## Fair-Comparison Note
+All non-ours rows in the SOTA table are reported values from cited papers under their own settings; they are **not retrained in this repository**. Metric scales/protocols can differ across codebases and preprocessing pipelines.
+
+## CI
+GitHub Actions runs on every push/PR:
+- `ruff check .`
+- `black --check .`
+- `pytest -q -k "not integration"`
+- CLI help smoke tests.
+
+## License
+Apache-2.0. See `LICENSE`.
+
+## References (IEEE Style)
+[1] J. Xu, T. Mei, T. Yao, and Y. Rui, “MSR-VTT: A Large Video Description Dataset for Bridging Video and Language,” in *Proc. CVPR*, 2016. Available: https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Xu_MSR-VTT_A_Large_CVPR_2016_paper.pdf
+
+[2] D. L. Chen and W. B. Dolan, “Collecting Highly Parallel Data for Paraphrase Evaluation,” in *Proc. ACL*, 2011. (MSVD project page: https://www.cs.utexas.edu/~ml/clamp/videoDescription/)
+
+[3] Z. Fang, J. Wang, L. Wang, L. Zhang, Y. Yang, and Z. Liu, “Video2Commonsense: Generating Commonsense Descriptions to Enrich Video Captioning,” in *Proc. EMNLP*, 2020. Available: https://aclanthology.org/2020.emnlp-main.61/
+
+[4] B. Wang, L. Ma, W. Zhang, and W. Liu, “Reconstruction Network for Video Captioning,” in *Proc. CVPR*, 2018. Available: https://openaccess.thecvf.com/content_cvpr_2018/papers/Wang_Reconstruction_Network_for_CVPR_2018_paper.pdf
+
+[5] Y. Bai, Y. Wang, Y. Zhang, J. Ma, and C. Dong, “Discriminative Latent Semantic Graph for Video Captioning,” in *Proc. ACM MM*, 2021. Available: https://arxiv.org/abs/2108.03662
+
+[6] H. Ye, G. Li, D. Liu, C. Zhang, Y. Wang, and H. Li, “Hierarchical Modular Network for Video Captioning,” in *Proc. CVPR*, 2022. Available: https://openaccess.thecvf.com/content/CVPR2022/html/Ye_Hierarchical_Modular_Network_for_Video_Captioning_CVPR_2022_paper.html
+
+[7] Y. Ma, Y. Wei, and Y. Zhu, “RETTA: Retrieval-Enhanced Test-Time Adaptation for Zero-Shot Video Captioning,” arXiv:2405.07046, 2024. Available: https://arxiv.org/abs/2405.07046
+
+[8] PyTorch Team, “MPS backend,” *PyTorch Documentation*. Available: https://pytorch.org/docs/stable/notes/mps.html

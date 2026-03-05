@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "Video Captioning with Prefix Adaptation and Reconstruction"
+message: "If you use this repository, please cite it using this metadata and the references in README."
+type: software
+authors:
+  - family-names: "Anonymous"
+    given-names: "Contributor"
+repository-code: "https://github.com/bozliu/video-captioning"
+license: "Apache-2.0"
+version: "1.0.0"
+date-released: "2026-03-05"
+keywords:
+  - video captioning
+  - multimodal learning
+  - reconstruction loss
+  - msr-vtt
+  - mps
