@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+.venv/
+venv/
+.env
+
+# OS/IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Data and artifacts (do not publish)
+data/
+artifacts/
+checkpoints/
+outputs/
+logs/
+
+# Model/data blobs
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.onnx
+*.npy
+*.npz
+*.h5
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Misc
+*.log
