@@ -27,6 +27,13 @@ data/
   V2C_MSR-VTT_caption.json
   v2c_info.json
   msrvtt_new_info.json
+
+  # Optional: local video clips (not required for training/eval).
+  # Used only for generating README qualitative GIFs.
+  videos/
+    video9703.mp4
+    video7481.mp4
+    video7116.mp4
 ```
 
 ## Notes
