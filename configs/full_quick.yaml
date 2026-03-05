@@ -1,0 +1,43 @@
+data_root: data
+feature_dir: data/resnet152
+caption_json: data/V2C_MSR-VTT_caption.json
+info_json: data/v2c_info.json
+split_json: data/splits.json
+
+train_subset_size: null
+val_subset_size: 400
+test_subset_size: null
+
+decoder_model_name: distilgpt2
+max_text_tokens: 32
+num_prefix_tokens: 12
+video_dim_in: 2048
+hidden_dim: 768
+num_video_layers: 2
+num_heads: 8
+dropout: 0.1
+lambda_recon: 0.2
+
+batch_size: 16
+epochs: 4
+lr_main: 0.0001
+lr_lm: 0.00001
+weight_decay: 0.01
+warmup_ratio: 0.05
+
+amp: true
+device: auto
+beam_size: 1
+max_new_tokens: 24
+
+num_workers: 0
+grad_clip_norm: 1.0
+early_stopping_patience: 2
+seed: 42
+log_every: 20
+max_steps_per_epoch: null
+
+run_name: full_quick
+output_root: artifacts
+save_every_epoch: true
+resume_checkpoint: null
